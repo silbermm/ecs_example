@@ -35,3 +35,4 @@ npm-debug.log
 
 /infrastructure/*.tfstate
 /infrastructure/*.tfstate.backup
+/infrastructure/.terraform
