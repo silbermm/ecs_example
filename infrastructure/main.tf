@@ -7,6 +7,10 @@ variable app_name {
   default = "ecs_app"  
 }
 
+variable task_version {
+  default = 4
+}
+
 
 resource aws_vpc main {
   cidr_block = "172.31.0.0/16"
@@ -16,7 +20,7 @@ resource aws_vpc main {
 }
 
 resource "aws_ecr_repository" "repo" {
-  name                 = "${var.app_name}_repo"  # give this a better name
+  name                 = "${var.app_name}_repo"  
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -36,13 +40,13 @@ data aws_subnet default_subnet {
 data "aws_caller_identity" "current" {}
 
 resource aws_lb_target_group lb_target_group {
-  name        = "ecs-app-tg" # choose a name that makes sense
-  port        = 4000          # We expose port 4000 from our container
+  name        = "ecs-app-tg" 
+  port        = 4000
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id # our default vpc id
+  vpc_id      = aws_vpc.main.id 
   target_type = "ip"
   health_check {
-    path = "/health" # we configured a rest endpoint that just returns 200 for this
+    path = "/health" 
     port = "4000"
   }
   stickiness {
@@ -52,7 +56,6 @@ resource aws_lb_target_group lb_target_group {
   }
 }
 
-# Only listen on 443
 resource aws_lb_listener ecs_listener {
   load_balancer_arn = aws_lb.load_balancer.arn
   port              = "80"
@@ -73,7 +76,6 @@ resource aws_lb load_balancer {
   enable_deletion_protection = true
 }
 
-# needed to allow web traffic to hit the ALB
 resource aws_security_group lb_security_group {
   name        = "lb_security_group"
   description = "Allow all outbound traffic and https inbound"
@@ -144,15 +146,13 @@ resource aws_ecs_service service {
   name            = "${var.app_name}_service"
   cluster         = aws_ecs_cluster.ecs_cluster.id
 
-  # note, you will need to subsitute your_account_id with your actual aws account id
-  # I have not found an easier way to get the full task_definition ARN
-  task_definition = "arn:aws:ecs:us-east-1:${data.aws_caller_identity.current.account_id}:task-definition/${aws_ecs_task_definition.task_definition.family}:3"
+  task_definition = "arn:aws:ecs:us-east-1:${data.aws_caller_identity.current.account_id}:task-definition/${aws_ecs_task_definition.task_definition.family}:${var.task_version}"
   desired_count   = 1
   launch_type     = "FARGATE"
   network_configuration {
     security_groups   = [aws_security_group.security_group.id]
     subnets           = data.aws_subnet.default_subnet.*.id
-    assign_public_ip  = true # this seems to be required to access the container repo
+    assign_public_ip  = true
   }
   load_balancer {
     target_group_arn = aws_lb_target_group.lb_target_group.arn
@@ -160,15 +160,12 @@ resource aws_ecs_service service {
     container_port   = "4000"
   }
 
-  # this will come into play when we talk about distributed clustering
   service_registries {
     registry_arn =  aws_service_discovery_service.service_discovery.arn
     container_name = var.app_name 
   }
 }
 
-# needed that that our container can access the outside world
-# and traffic in your VPC can access the containers
 resource aws_security_group security_group {
   name        = var.app_name 
   description = "Allow all outbound traffic"
@@ -190,9 +187,6 @@ resource aws_security_group security_group {
   }
 }
 
-# this is the role that your container runs as
-# you can give it permissions to other parts of AWS that it may need to access
-# like S3 or DynamoDB for instance.
 resource aws_iam_role ecs_role {
   name = "ecs_role"
   assume_role_policy = <<-EOF
@@ -212,9 +206,6 @@ resource aws_iam_role ecs_role {
   EOF
 }
 
-# this role and the following permissions are required
-# for the ECS service to pull the container from ECR
-# and write log events
 resource aws_iam_role ecs_execution_role {
   name = "ecs_execution_role"
   assume_role_policy = <<-EOF
@@ -267,7 +258,6 @@ resource aws_cloudwatch_log_group log_group {
   name = "/ecs/${var.app_name}"
 }
 
-# these enable service discovery to help us cluster our servers
 resource "aws_service_discovery_private_dns_namespace" dns_namespace {
   name        = "${var.app_name}.local"
   description = "some desc"

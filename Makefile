@@ -12,14 +12,14 @@ build:
 	docker build --build-arg APP_VSN=$(APP_VSN) \
     --build-arg MIX_ENV=prod \
     --build-arg SECRET_KEY_BASE=$(SECRET_KEY_BASE) \
-    -t 686556766167.dkr.ecr.us-east-1.amazonaws.com/ecs_example_repo:$(APP_VSN)-$(BUILD) \
-    -t 686556766167.dkr.ecr.us-east-1.amazonaws.com/ecs_example_repo:latest .
+    -t 686556766167.dkr.ecr.us-east-1.amazonaws.com/ecs_app_repo:$(APP_VSN)-$(BUILD) \
+    -t 686556766167.dkr.ecr.us-east-1.amazonaws.com/ecs_app_repo:latest .
 
 push:
 	eval `aws ecr get-login --no-include-email --region us-east-1`
-	docker push 686556766167.dkr.ecr.us-east-1.amazonaws.com/ecs_example_repo:$(APP_VSN)-$(BUILD)
-	docker push 686556766167.dkr.ecr.us-east-1.amazonaws.com/ecs_example_repo:latest
+	docker push 686556766167.dkr.ecr.us-east-1.amazonaws.com/ecs_app_repo:$(APP_VSN)-$(BUILD)
+	docker push 686556766167.dkr.ecr.us-east-1.amazonaws.com/ecs_app_repo:latest
 
 deploy:
-	./bin/ecs-deploy -c ecs_app_cluster -n ecs_app_service -i 686556766167.dkr.ecr.us-east-1.amazonaws.com/ecs_example_repo:$(APP_VSN)-$(BUILD) -r us-east-1 -t 300
+	./bin/ecs-deploy -c ecs_app_cluster -n ecs_app_service -i 686556766167.dkr.ecr.us-east-1.amazonaws.com/ecs_app_repo:$(APP_VSN)-$(BUILD) -r us-east-1 -t 300
 
