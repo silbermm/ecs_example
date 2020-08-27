@@ -16,7 +16,7 @@ resource aws_vpc main {
 }
 
 resource "aws_ecr_repository" "repo" {
-  name                 = "ecs_example_repo"  # give this a better name
+  name                 = "${var.app_name}_repo"  # give this a better name
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -35,6 +35,7 @@ data aws_subnet default_subnet {
 
 data "aws_caller_identity" "current" {}
 
+/*
 resource aws_lb_target_group lb_target_group {
   name        = "ecs-app-tg" # choose a name that makes sense
   port        = 4000          # We expose port 4000 from our container
@@ -288,7 +289,7 @@ resource "aws_service_discovery_service" service_discovery {
     routing_policy = "MULTIVALUE"
   }
 }
-
+*/
 output repo_url {
   value = aws_ecr_repository.repo.repository_url
 }
