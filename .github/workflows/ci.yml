@@ -1,0 +1,75 @@
+name: ECS DEPLOYMENT
+
+on:
+  push:
+    branches: [ main ] #i renamed my master branch to main
+
+jobs:
+  test:
+  name: Run Tests
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: main 
+    - uses: actions/cache@v2
+      with:
+        path: deps
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        restore-keys: |
+          ${{ runner.os }}-mix-
+    - name: Set up Elixir
+      uses: actions/setup-elixir@v1
+      with:
+        elixir-version: '1.10.3' 
+        otp-version: '22.3' 
+    - name: Install dependencies
+      run: mix deps.get
+    - name: Run tests
+      run: MIX_ENV=test mix do compile, test 
+
+  build:
+    name: Build And Push Container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: main
+    - uses: actions/cache@v2
+      with:
+        path: deps
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        restore-keys: |
+          ${{ runner.os }}-mix-
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Build Docker Image
+      run: make build
+      env:
+        SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+
+    - name: Push Docker Image
+      run: make push
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: main
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Deploy
+      run: make deploy
