@@ -4,7 +4,7 @@ BUILD ?= `git rev-parse --short HEAD`
 
 build_local:
 	docker build --build-arg APP_VSN=$(APP_VSN) \
-    --build-arg MIX_ENV=dev \
+    --build-arg MIX_ENV=prod \
     --build-arg SECRET_KEY_BASE=$(SECRET_KEY_BASE) \
     -t $(APP_NAME):$(APP_VSN) .
 

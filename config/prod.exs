@@ -10,7 +10,7 @@ use Mix.Config
 # which you should run after static files are built and
 # before starting your production server.
 config :ecs_app, EcsAppWeb.Endpoint,
-  url: [host: "example.com", port: 80],
+  url: [host: "ecs-app-lb-1255225948.us-east-1.elb.amazonaws.com", port: 4000],
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Do not print debug messages in production

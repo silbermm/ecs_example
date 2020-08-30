@@ -17,6 +17,7 @@ defmodule EcsAppWeb.Router do
   scope "/", EcsAppWeb do
     pipe_through :browser
 
+    get "/health", HealthController, :index
     live "/", PageLive, :index
   end
 

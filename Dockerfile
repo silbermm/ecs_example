@@ -1,6 +1,7 @@
 FROM elixir:1.10.0-alpine AS build
 
 ARG MIX_ENV
+ARG SECRET_KEY_BASE
 
 RUN apk add --no-cache build-base git npm python
 
@@ -12,6 +13,8 @@ RUN mix local.hex --force && \
 
 ENV MIX_ENV=${MIX_ENV}
 ENV SECRET_KEY_BASE=${SECRET_KEY_BASE}
+
+RUN echo $SECRET_KEY_BASE
 
 COPY mix.exs mix.lock ./
 COPY config config
@@ -32,6 +35,7 @@ RUN mix do compile, release
 FROM alpine:3.9 AS app
 
 ARG MIX_ENV
+ARG SECRET_KEY_BASE
 
 RUN apk add --no-cache openssl ncurses-libs
 
