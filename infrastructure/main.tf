@@ -8,7 +8,7 @@ variable app_name {
 }
 
 variable task_version {
-  default = 4
+  default = 5
 }
 
 
@@ -73,7 +73,7 @@ resource aws_lb load_balancer {
   security_groups    = [aws_security_group.lb_security_group.id]
   subnets            = data.aws_subnet.default_subnet.*.id
 
-  enable_deletion_protection = true
+  enable_deletion_protection = false
 }
 
 resource aws_security_group lb_security_group {
@@ -119,7 +119,7 @@ resource aws_ecs_task_definition task_definition {
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/${var.app_name}",
+          "awslogs-group": "${aws_cloudwatch_log_group.log_group.name}",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
@@ -281,4 +281,8 @@ resource "aws_service_discovery_service" service_discovery {
 
 output repo_url {
   value = aws_ecr_repository.repo.repository_url
+}
+
+output dns {
+  value = aws_lb.load_balancer.dns_name
 }
