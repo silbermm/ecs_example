@@ -8,7 +8,7 @@ variable app_name {
 }
 
 variable task_version {
-  default = 5
+  default = 11
 }
 
 
