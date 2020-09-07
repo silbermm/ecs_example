@@ -6,13 +6,28 @@ defmodule EcsApp.Application do
   use Application
 
   def start(_type, _args) do
+    
+    topologies = [
+      ecs_app: [
+        strategy: Cluster.Strategy.DNSPoll,
+        config: [
+          polling_interval: 1000,
+          query: "ecs_app.ecs_app.local",
+          node_basename: "ecs_app"
+        ]
+      ]
+    ]
+
+
+
     children = [
       # Start the Telemetry supervisor
       EcsAppWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: EcsApp.PubSub},
       # Start the Endpoint (http/https)
-      EcsAppWeb.Endpoint
+      EcsAppWeb.Endpoint,
+      {Cluster.Supervisor, [topologies, [name: EcsApp.ClusterSupervisor]]},
       # Start a worker by calling: EcsApp.Worker.start_link(arg)
       # {EcsApp.Worker, arg}
     ]

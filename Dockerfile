@@ -29,6 +29,7 @@ RUN npm run --prefix ./assets deploy
 RUN mix phx.digest
 
 COPY lib lib
+COPY rel rel
 
 RUN mix do compile, release
 
