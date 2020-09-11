@@ -6,7 +6,7 @@ defmodule EcsApp.Application do
   use Application
 
   def start(_type, _args) do
-    
+
     topologies = [
       ecs_app: [
         strategy: Cluster.Strategy.DNSPoll,
