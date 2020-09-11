@@ -38,7 +38,7 @@ FROM alpine:3.9 AS app
 ARG MIX_ENV
 ARG SECRET_KEY_BASE
 
-RUN apk add --no-cache openssl ncurses-libs
+RUN apk add --no-cache openssl ncurses-libs curl jq
 
 WORKDIR /app
 
